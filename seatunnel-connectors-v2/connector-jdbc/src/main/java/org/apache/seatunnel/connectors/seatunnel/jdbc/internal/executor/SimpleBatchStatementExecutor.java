@@ -53,6 +53,9 @@ public class SimpleBatchStatementExecutor implements JdbcBatchStatementExecutor<
     public void executeBatch() throws SQLException {
         statement.executeBatch();
         statement.clearBatch();
+        if(!statement.getConnection().getAutoCommit()){
+            statement.getConnection().commit();
+        }
     }
 
     @Override
