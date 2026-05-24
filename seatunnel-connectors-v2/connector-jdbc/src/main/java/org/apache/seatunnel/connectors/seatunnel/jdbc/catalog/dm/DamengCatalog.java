@@ -37,7 +37,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -110,20 +109,6 @@ public class DamengCatalog extends AbstractJdbcCatalog {
     protected String getCreateTableSql(
             TablePath tablePath, CatalogTable table, boolean createIndex) {
         return new DamengCreateTableSqlBuilder(table, createIndex).build(tablePath);
-    }
-
-    @Override
-    protected List<String> getCreateTableSqls(
-            TablePath tablePath, CatalogTable table, boolean createIndex) {
-        String sql = getCreateTableSql(tablePath, table, createIndex);
-        // Dameng JDBC driver does not support executing multiple SQL statements in a single
-        // execute() call, so we need to split the combined SQL (CREATE TABLE + COMMENT ON COLUMN)
-        // into separate statements.
-        return Arrays.stream(sql.split(";"))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(s -> s + ";")
-                .collect(java.util.stream.Collectors.toList());
     }
 
     @Override
