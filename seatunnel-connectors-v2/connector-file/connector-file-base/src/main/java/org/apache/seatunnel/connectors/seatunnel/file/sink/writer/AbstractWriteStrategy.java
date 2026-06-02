@@ -48,6 +48,8 @@ import lombok.SneakyThrows;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -416,9 +418,26 @@ public abstract class AbstractWriteStrategy<T> implements WriteStrategy<T> {
         String tmpPath =
                 seaTunnelFilePath.replaceAll(
                         Matcher.quoteReplacement(transactionDirectory),
-                        Matcher.quoteReplacement(fileSinkConfig.getPath()));
+                        // 这里要去掉前缀，file:///，hdfs:///这种
+                        Matcher.quoteReplacement(getUri(fileSinkConfig.getPath())));
         return tmpPath.replaceAll(
                 FileBaseSinkOptions.NON_PARTITION + Matcher.quoteReplacement(File.separator), "");
+    }
+
+    // 去掉 scheme 前缀 (hdfs://, file:///, s3a:// 等)，只保留路径部分
+    private String getUri(String path) {
+        if (StringUtils.isBlank(path)) {
+            return path;
+        }
+        try {
+            URI uri = new URI(path);
+            if (uri.getScheme() != null) {
+                return uri.getPath();
+            }
+            return path;
+        } catch (URISyntaxException e) {
+            return path;
+        }
     }
 
     @Override

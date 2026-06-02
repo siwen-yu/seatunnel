@@ -19,6 +19,7 @@ package org.apache.seatunnel.connectors.seatunnel.hive.sink;
 
 import org.apache.seatunnel.shade.com.typesafe.config.Config;
 import org.apache.seatunnel.shade.com.typesafe.config.ConfigValueFactory;
+import org.apache.seatunnel.shade.org.apache.commons.lang3.StringUtils;
 
 import org.apache.seatunnel.api.common.JobContext;
 import org.apache.seatunnel.api.configuration.ReadonlyConfig;
@@ -314,6 +315,21 @@ public class HiveSink
             String table = config.get(HiveConfig.TABLE_NAME);
             org.apache.seatunnel.api.table.catalog.TablePath path =
                     org.apache.seatunnel.api.table.catalog.TablePath.of(table);
+            // 如果指定了saveMode，则从saveMode获取location
+            if (readonlyConfig.getOptional(HiveSinkOptions.SAVE_MODE_CREATE_TEMPLATE).isPresent()) {
+                String template = readonlyConfig.get(HiveSinkOptions.SAVE_MODE_CREATE_TEMPLATE);
+                String locationPath =
+                        org.apache.seatunnel.connectors.seatunnel.hive.utils.HiveTableTemplateUtils
+                                .extractLocationAndReplaceFromTemplate(
+                                        template,
+                                        path.getDatabaseName(),
+                                        path.getTableName(),
+                                        catalogTable.getTableSchema());
+                if (StringUtils.isNotEmpty(locationPath)) {
+                    return locationPath;
+                }
+            }
+            // 否则根据hadoopConf获取配置
             return org.apache.seatunnel.connectors.seatunnel.hive.utils.HiveLocationUtils
                     .qualifiedDefaultLocation(config, path.getDatabaseName(), path.getTableName());
         } catch (Exception e) {

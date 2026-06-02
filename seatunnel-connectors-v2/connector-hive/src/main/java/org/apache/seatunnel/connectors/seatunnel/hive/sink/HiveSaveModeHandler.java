@@ -218,6 +218,12 @@ public class HiveSaveModeHandler implements SaveModeHandler, AutoCloseable {
                 log.info(
                         "Successfully created table {}.{} via HiveServer2 JDBC", dbName, tableName);
                 return;
+            } else {
+                throw new HiveConnectorException(
+                        HiveConnectorErrorCode.CREATE_HIVE_TABLE_FAILED,
+                        String.format(
+                                "Failed created table %s.%s via HiveServer2 JDBC",
+                                dbName, tableName));
             }
         }
 

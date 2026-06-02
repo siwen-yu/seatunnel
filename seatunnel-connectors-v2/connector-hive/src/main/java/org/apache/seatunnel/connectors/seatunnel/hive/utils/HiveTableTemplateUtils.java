@@ -185,6 +185,36 @@ public class HiveTableTemplateUtils {
         return null;
     }
 
+    /** Extract LOCATION path from template. If it contains ${table_location}, replace it. */
+    public static String extractLocationAndReplaceFromTemplate(
+            String template,
+            String database,
+            String table,
+            org.apache.seatunnel.api.table.catalog.TableSchema tableSchema) {
+        if (template == null) {
+            return null;
+        }
+        String patternStr = "LOCATION\\s+'([^']+)'";
+        java.util.regex.Pattern pattern =
+                java.util.regex.Pattern.compile(
+                        patternStr, java.util.regex.Pattern.CASE_INSENSITIVE);
+        java.util.regex.Matcher matcher = pattern.matcher(template);
+        if (matcher.find()) {
+            String raw = matcher.group(1);
+
+            List<String> partitionFields = extractPartitionFieldsFromTemplate(template);
+            String fieldsDefinition = generateFieldsDefinition(tableSchema, partitionFields);
+            String partitionDefinition = generatePartitionDefinition(tableSchema, partitionFields);
+            return raw.replace("${database}", database)
+                    .replace("${table}", table)
+                    .replace("${rowtype_fields}", fieldsDefinition)
+                    .replace("${rowtype_partition_fields}", partitionDefinition)
+                    .replace("${current_timestamp}", String.valueOf(System.currentTimeMillis()));
+        }
+
+        return null;
+    }
+
     /**
      * Extract table type from template. Returns EXTERNAL_TABLE if template contains "CREATE
      * EXTERNAL TABLE" (case-insensitive), otherwise MANAGED_TABLE.

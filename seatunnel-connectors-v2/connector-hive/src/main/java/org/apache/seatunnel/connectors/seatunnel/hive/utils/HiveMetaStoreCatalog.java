@@ -61,7 +61,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -79,6 +81,7 @@ public class HiveMetaStoreCatalog implements Catalog, Closeable, Serializable {
     private final String metastoreUri;
     private final String hadoopConfDir;
     private final String hiveSitePath;
+    private final Map<String, String> hadoopConf;
     private final boolean kerberosEnabled;
     private final boolean remoteUserEnabled;
 
@@ -94,6 +97,7 @@ public class HiveMetaStoreCatalog implements Catalog, Closeable, Serializable {
     public HiveMetaStoreCatalog(ReadonlyConfig config) {
         this.metastoreUri = config.get(HiveConfig.METASTORE_URI);
         this.hadoopConfDir = config.get(HiveConfig.HADOOP_CONF_PATH);
+        this.hadoopConf = config.getOptional(HiveConfig.HADOOP_CONF).orElse(new HashMap<>());
         this.hiveSitePath = config.get(HiveConfig.HIVE_SITE_PATH);
         this.kerberosEnabled = HiveMetaStoreProxyUtils.enableKerberos(config);
         this.remoteUserEnabled = HiveMetaStoreProxyUtils.enableRemoteUser(config);
@@ -215,7 +219,11 @@ public class HiveMetaStoreCatalog implements Catalog, Closeable, Serializable {
             Class.forName("org.apache.hive.jdbc.HiveDriver");
 
             // Create connection and execute SQL
-            conn = DriverManager.getConnection(jdbcUrl);
+            if (kerberosEnabled) {
+                conn = loginWithKerberos(jdbcUrl);
+            } else {
+                conn = DriverManager.getConnection(jdbcUrl);
+            }
             stmt = conn.createStatement();
             stmt.execute(sql);
             return true;
@@ -225,6 +233,9 @@ public class HiveMetaStoreCatalog implements Catalog, Closeable, Serializable {
             return false;
         } catch (java.sql.SQLException e) {
             log.debug("Failed to execute SQL via HiveServer2 JDBC: {}", e.getMessage());
+            return false;
+        } catch (Exception e) {
+            log.debug("Failed to connect to HiveServer2 JDBC: {}", e.getMessage());
             return false;
         } finally {
             // Close resources
@@ -312,6 +323,9 @@ public class HiveMetaStoreCatalog implements Catalog, Closeable, Serializable {
                 log.warn("Invalid hiveSitePath {}", hiveSitePath, e);
             }
         }
+        for (Map.Entry<String, String> entry : hadoopConf.entrySet()) {
+            hiveConf.set(entry.getKey(), entry.getValue());
+        }
         log.debug("Hive client configuration initialized");
         return hiveConf;
     }
@@ -328,6 +342,17 @@ public class HiveMetaStoreCatalog implements Catalog, Closeable, Serializable {
                     this.userGroupInformation = ugi;
                     return createClient(hiveConf);
                 });
+    }
+
+    private Connection loginWithKerberos(String jdbcUrl) throws Exception {
+        Configuration authConf = new Configuration();
+        authConf.set("hadoop.security.authentication", "kerberos");
+        return HadoopLoginFactory.loginWithKerberos(
+                authConf,
+                krb5Path,
+                principal,
+                keytabPath,
+                (conf, ugi) -> DriverManager.getConnection(jdbcUrl));
     }
 
     private IMetaStoreClient loginWithRemoteUser(HiveConf hiveConf) throws Exception {
