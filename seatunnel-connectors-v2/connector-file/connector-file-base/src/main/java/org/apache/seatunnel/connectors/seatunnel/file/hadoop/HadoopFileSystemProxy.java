@@ -102,7 +102,7 @@ public class HadoopFileSystemProxy implements Serializable, Closeable {
                 () -> {
                     Path oldPath = new Path(oldFilePath);
                     Path newPath = new Path(newFilePath);
-
+                    log.info("rename file :[{}] to [{}]", oldPath, newPath);
                     if (!fileExist(oldPath.toString())) {
                         log.warn(
                                 "rename file :["
