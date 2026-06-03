@@ -325,7 +325,8 @@ public class HiveSink
                                         path.getDatabaseName(),
                                         path.getTableName(),
                                         catalogTable.getTableSchema());
-                if (StringUtils.isNotEmpty(locationPath)) {
+                if (StringUtils.isNotEmpty(locationPath)
+                        && !locationPath.contains("${table_location}")) {
                     return locationPath;
                 }
             }
