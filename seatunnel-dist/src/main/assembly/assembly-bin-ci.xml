@@ -38,9 +38,12 @@
 
             <includes>
                 <include>README.md</include>
-                <include>config/**</include>
                 <include>plugins/**</include>
             </includes>
+        </fileSet>
+        <fileSet>
+            <directory>../config</directory>
+            <lineEnding>unix</lineEnding>
         </fileSet>
         <!-- ============ Install Plugin Bin ============  -->
         <fileSet>
