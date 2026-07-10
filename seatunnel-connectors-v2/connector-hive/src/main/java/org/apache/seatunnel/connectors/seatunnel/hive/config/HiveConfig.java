@@ -69,4 +69,10 @@ public class HiveConfig {
                     .noDefaultValue()
                     .withDescription(
                             "The specified loading path for the 'core-site.xml', 'hdfs-site.xml' files");
+
+    public static final Option<Boolean> LOAD_METASTORE_CONFIG =
+            Options.key("load.metastore.config")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription("Whether to load metastore config");
 }

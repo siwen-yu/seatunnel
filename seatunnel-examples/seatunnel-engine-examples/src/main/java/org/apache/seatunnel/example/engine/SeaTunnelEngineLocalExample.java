@@ -22,6 +22,7 @@ import org.apache.seatunnel.core.starter.enums.MasterType;
 import org.apache.seatunnel.core.starter.exception.CommandException;
 import org.apache.seatunnel.core.starter.seatunnel.args.ClientCommandArgs;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -52,6 +53,10 @@ public class SeaTunnelEngineLocalExample {
             throws FileNotFoundException, URISyntaxException {
         URL resource = SeaTunnelEngineLocalExample.class.getResource(configFile);
         if (resource == null) {
+            File file = new File(configFile);
+            if (file.exists()) {
+                return file.getAbsolutePath();
+            }
             throw new FileNotFoundException("Can't find config file: " + configFile);
         }
         return Paths.get(resource.toURI()).toString();

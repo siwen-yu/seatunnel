@@ -84,6 +84,7 @@ public class HiveMetaStoreCatalog implements Catalog, Closeable, Serializable {
     private final Map<String, String> hadoopConf;
     private final boolean kerberosEnabled;
     private final boolean remoteUserEnabled;
+    private final boolean loadMetastoreConfig;
 
     private final String krb5Path;
     private final String principal;
@@ -99,6 +100,7 @@ public class HiveMetaStoreCatalog implements Catalog, Closeable, Serializable {
         this.hadoopConfDir = config.get(HiveConfig.HADOOP_CONF_PATH);
         this.hadoopConf = config.getOptional(HiveConfig.HADOOP_CONF).orElse(new HashMap<>());
         this.hiveSitePath = config.get(HiveConfig.HIVE_SITE_PATH);
+        this.loadMetastoreConfig = config.get(HiveConfig.LOAD_METASTORE_CONFIG);
         this.kerberosEnabled = HiveMetaStoreProxyUtils.enableKerberos(config);
         this.remoteUserEnabled = HiveMetaStoreProxyUtils.enableRemoteUser(config);
         this.krb5Path = config.get(HdfsSourceConfigOptions.KRB5_PATH);
@@ -290,6 +292,9 @@ public class HiveMetaStoreCatalog implements Catalog, Closeable, Serializable {
     }
 
     private HiveConf buildHiveConf() {
+        if (loadMetastoreConfig) {
+            HiveConf.setLoadMetastoreConfig(true);
+        }
         HiveConf hiveConf = new HiveConf();
         if (StringUtils.isNotBlank(metastoreUri)) {
             String normalizedMetastoreUris = normalizeMetastoreUris(metastoreUri);
@@ -331,7 +336,7 @@ public class HiveMetaStoreCatalog implements Catalog, Closeable, Serializable {
     }
 
     private IMetaStoreClient loginWithKerberos(HiveConf hiveConf) throws Exception {
-        Configuration authConf = new Configuration();
+        Configuration authConf = new Configuration(hiveConf);
         authConf.set("hadoop.security.authentication", "kerberos");
         return HadoopLoginFactory.loginWithKerberos(
                 authConf,

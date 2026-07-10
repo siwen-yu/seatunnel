@@ -47,7 +47,13 @@ public final class HiveLocationUtils {
                     new org.apache.hadoop.conf.Configuration(false);
 
             if (hadoopConfDir != null && !hadoopConfDir.isEmpty()) {
-                String[] files = new String[] {"core-site.xml", "hdfs-site.xml", "hive-site.xml"};
+                String[] files =
+                        new String[] {
+                            "core-site.xml",
+                            "hdfs-site.xml",
+                            "hive-site.xml",
+                            "hivemetastore-site.xml"
+                        };
                 for (String f : files) {
                     Path p = Paths.get(hadoopConfDir, f);
                     if (Files.exists(p)) {
