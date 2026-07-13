@@ -272,6 +272,12 @@
                 </dependency>
                 <dependency>
                     <groupId>org.apache.seatunnel</groupId>
+                    <artifactId>connector-dws-client</artifactId>
+                    <version>${project.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.seatunnel</groupId>
                     <artifactId>connector-jdbc</artifactId>
                     <version>${project.version}</version>
                     <scope>provided</scope>
@@ -681,6 +687,13 @@
                 <dependency>
                     <groupId>org.apache.seatunnel</groupId>
                     <artifactId>connector-lance</artifactId>
+                    <version>${project.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.apache.seatunnel</groupId>
+                    <artifactId>connector-dws-client</artifactId>
                     <version>${project.version}</version>
                     <scope>provided</scope>
                 </dependency>
