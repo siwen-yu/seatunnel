@@ -17,6 +17,7 @@
 
 package org.apache.seatunnel.connectors.seatunnel.dws.sink;
 
+import org.apache.seatunnel.api.configuration.Option;
 import org.apache.seatunnel.api.configuration.ReadonlyConfig;
 import org.apache.seatunnel.api.table.factory.Factory;
 import org.apache.seatunnel.connectors.seatunnel.dws.config.DwsClientOptions;
@@ -24,6 +25,8 @@ import org.apache.seatunnel.connectors.seatunnel.dws.config.DwsSinkConfig;
 
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -59,5 +62,22 @@ class DwsClientSinkFactoryTest {
         assertEquals(30000, config.getBatchSize());
         assertEquals(3000, config.getFlushIntervalMs());
         assertTrue(config.isEnableDelete());
+    }
+
+    @Test
+    void allOptionsHaveDescriptions() throws IllegalAccessException {
+        int optionCount = 0;
+        for (Field field : DwsClientOptions.class.getDeclaredFields()) {
+            if (Modifier.isStatic(field.getModifiers())
+                    && Option.class.isAssignableFrom(field.getType())) {
+                Option<?> option = (Option<?>) field.get(null);
+                assertTrue(
+                        option.getDescription() != null
+                                && !option.getDescription().trim().isEmpty(),
+                        "Missing description for option: " + option.key());
+                optionCount++;
+            }
+        }
+        assertEquals(15, optionCount);
     }
 }

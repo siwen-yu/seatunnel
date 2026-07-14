@@ -29,11 +29,14 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Locale;
 
+/** Thin adapter around the Huawei SDK, kept separate so sink behavior can be unit tested. */
 final class HuaweiDwsClientFacade implements DwsClientFacade {
     private final String table;
     private final DwsClient client;
 
     HuaweiDwsClientFacade(DwsSinkConfig config, int subtaskIndex) {
+        // Every SeaTunnel sink subtask owns one independent dws-client. write_thread_size controls
+        // concurrency inside that client and multiplies with the sink parallelism.
         DwsConfig.Builder builder =
                 DwsConfig.builder()
                         .withUrl(config.getUrl())
@@ -77,6 +80,8 @@ final class HuaweiDwsClientFacade implements DwsClientFacade {
 
     private static void commit(Operate operate, String[] fieldNames, Object[] values)
             throws Exception {
+        // The SDK builds one logical row through named setters and queues it on commit(); network
+        // submission is controlled by the SDK batch size, timer, or an explicit flush().
         for (int i = 0; i < fieldNames.length; i++) {
             operate.setObject(fieldNames[i], values[i]);
         }

@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 
+/** Converts Java time values to JDBC types understood by the Huawei SDK's setObject path. */
 final class DwsValueConverter {
     private DwsValueConverter() {}
 

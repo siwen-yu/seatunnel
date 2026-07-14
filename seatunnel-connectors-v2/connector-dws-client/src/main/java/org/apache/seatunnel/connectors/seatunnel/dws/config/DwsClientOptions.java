@@ -25,36 +25,94 @@ import org.apache.seatunnel.api.configuration.util.OptionRule;
 import java.util.Collections;
 import java.util.List;
 
+/** Configuration options mapped directly to Huawei {@code DwsConfig}. */
 public final class DwsClientOptions {
     public static final String CONNECTOR_IDENTITY = "DwsClient";
 
-    public static final Option<String> URL = Options.key("url").stringType().noDefaultValue();
-    public static final Option<String> USER = Options.key("user").stringType().noDefaultValue();
+    public static final Option<String> URL =
+            Options.key("url")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription(
+                            "JDBC URL used by Huawei dws-client to connect to GaussDB(DWS).");
+    public static final Option<String> USER =
+            Options.key("user")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("GaussDB(DWS) user name.");
     public static final Option<String> PASSWORD =
-            Options.key("password").stringType().noDefaultValue();
-    public static final Option<String> TABLE = Options.key("table").stringType().noDefaultValue();
+            Options.key("password")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("Password of the GaussDB(DWS) user.");
+    public static final Option<String> TABLE =
+            Options.key("table")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription(
+                            "Target table name accepted by dws-client, optionally qualified with a schema.");
     public static final Option<String> WRITE_MODE =
-            Options.key("write_mode").stringType().defaultValue("AUTO");
+            Options.key("write_mode")
+                    .stringType()
+                    .defaultValue("AUTO")
+                    .withDescription("Huawei dws-client write mode, for example AUTO or COPY.");
     public static final Option<String> CONFLICT_STRATEGY =
-            Options.key("conflict_strategy").stringType().defaultValue("INSERT_OR_UPDATE");
+            Options.key("conflict_strategy")
+                    .stringType()
+                    .defaultValue("INSERT_OR_UPDATE")
+                    .withDescription(
+                            "Huawei dws-client strategy used when an inserted row conflicts with existing data.");
     public static final Option<Integer> BATCH_SIZE =
-            Options.key("batch_size").intType().defaultValue(30000);
+            Options.key("batch_size")
+                    .intType()
+                    .defaultValue(30000)
+                    .withDescription(
+                            "Number of buffered rows that triggers an automatic dws-client flush.");
     public static final Option<Long> FLUSH_INTERVAL_MS =
-            Options.key("flush_interval_ms").longType().defaultValue(3000L);
+            Options.key("flush_interval_ms")
+                    .longType()
+                    .defaultValue(3000L)
+                    .withDescription(
+                            "Maximum interval in milliseconds between automatic dws-client flushes; 0 disables interval-based flushing.");
     public static final Option<Integer> WRITE_THREAD_SIZE =
-            Options.key("write_thread_size").intType().defaultValue(1);
+            Options.key("write_thread_size")
+                    .intType()
+                    .defaultValue(1)
+                    .withDescription(
+                            "Number of dws-client write threads created in each SeaTunnel sink subtask.");
     public static final Option<Integer> COPY_WRITE_BATCH_SIZE =
-            Options.key("copy_write_batch_size").intType().defaultValue(1000);
+            Options.key("copy_write_batch_size")
+                    .intType()
+                    .defaultValue(1000)
+                    .withDescription("Number of rows in each dws-client COPY write batch.");
     public static final Option<Integer> MAX_RETRIES =
-            Options.key("max_retries").intType().defaultValue(3);
+            Options.key("max_retries")
+                    .intType()
+                    .defaultValue(3)
+                    .withDescription("Maximum number of retries for a failed dws-client flush.");
     public static final Option<Long> RETRY_BACKOFF_MS =
-            Options.key("retry_backoff_ms").longType().defaultValue(1000L);
+            Options.key("retry_backoff_ms")
+                    .longType()
+                    .defaultValue(1000L)
+                    .withDescription("Base retry backoff in milliseconds used by dws-client.");
     public static final Option<Boolean> CASE_SENSITIVE =
-            Options.key("case_sensitive").booleanType().defaultValue(false);
+            Options.key("case_sensitive")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription(
+                            "Whether dws-client treats table and column names as case-sensitive.");
     public static final Option<List<String>> COMPARE_FIELDS =
-            Options.key("compare_fields").listType().noDefaultValue();
+            Options.key("compare_fields")
+                    .listType()
+                    .noDefaultValue()
+                    .withDescription(
+                            "Columns used by dws-client to locate conflicting rows for update or delete operations.");
     public static final Option<Boolean> ENABLE_DELETE =
-            Options.key("enable_delete").booleanType().defaultValue(true);
+            Options.key("enable_delete")
+                    .booleanType()
+                    .defaultValue(true)
+                    .withDescription(
+                            "Whether DELETE changelog rows are submitted through dws-client; disabled mode rejects DELETE rows.");
 
     private DwsClientOptions() {}
 

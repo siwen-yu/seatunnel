@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+/** Converts SeaTunnel changelog rows into buffered Huawei dws-client operations. */
 final class DwsClientSinkWriter implements SinkWriter<SeaTunnelRow, Void, Void> {
     private final DwsSinkConfig config;
     private final String[] fieldNames;
@@ -48,6 +49,8 @@ final class DwsClientSinkWriter implements SinkWriter<SeaTunnelRow, Void, Void> 
         try {
             RowKind kind = row.getRowKind();
             if (kind == RowKind.UPDATE_BEFORE) {
+                // UPDATE_AFTER carries the complete new row, so submitting UPDATE_BEFORE would
+                // write stale values and duplicate one logical update.
                 return;
             }
             if (kind == RowKind.DELETE) {
@@ -67,25 +70,31 @@ final class DwsClientSinkWriter implements SinkWriter<SeaTunnelRow, Void, Void> 
 
     @Override
     public Optional<Void> prepareCommit() throws IOException {
+        // dws-client buffers operations internally. Flush before a commit boundary so buffered
+        // rows are not acknowledged by SeaTunnel before the client has submitted them.
         flushClient();
         return Optional.empty();
     }
 
     @Override
     public List<Void> snapshotState(long checkpointId) throws IOException {
+        // The connector has no recoverable transaction state. A restored job may replay rows,
+        // therefore delivery is at-least-once and compare_fields should identify rows for upsert.
         flushClient();
         return Collections.emptyList();
     }
 
     @Override
     public void abortPrepare() {
-        // dws-client manages its own statement/import lifecycle.
+        // dws-client exposes no transaction handle that SeaTunnel can roll back here.
     }
 
     @Override
     public void close() throws IOException {
         IOException failure = null;
         try {
+            // close() alone does not express a SeaTunnel checkpoint boundary; explicitly flush
+            // first to preserve rows buffered below batch_size.
             flushClient();
         } catch (IOException e) {
             failure = e;
