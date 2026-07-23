@@ -23,4 +23,5 @@ import lombok.Data;
 public class ErrResponse {
     private String status;
     private String message;
+    private String stackTrace;
 }
